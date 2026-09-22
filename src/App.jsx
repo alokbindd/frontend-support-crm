@@ -6,6 +6,9 @@ import './App.css'
 import TicketCard from './components/TicketCard'
 
 function App() {
+  const [search, setSearch] = useState("")
+  const [status, setStatus] = useState("All")
+
   const ticket = [
     {
       ticket_id: "TKT-001",
@@ -27,22 +30,45 @@ function App() {
     },
   ]
 
-  const [name, setName] = useState("Alok")
+  const filteredTicket = ticket.filter((ticket) => {
+    const matchesSearch = ticket.subject
+    .toLowerCase()
+    .includes(search.toLowerCase())
+
+    const matchesStatus = 
+      status === "All" || ticket.status === status
+    
+    return matchesSearch && matchesStatus
+  })
 
   return (
     <div>
       <h1>Support CRM</h1>
 
-      {/* {ticket.map((ticket) => (
+      <input
+        type="text"
+        placeholder='Search Ticket...'
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+      />
+
+      <select 
+        value={status}
+        onChange={(event) => setStatus(event.target.value)}
+      >
+        <option value="All">All</option>
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Closed">Closed</option>
+      </select>
+
+      {filteredTicket.map((ticket) => (
         <TicketCard
           key={ticket.ticket_id}
           ticket={ticket}
         />
-      ))} */}
-      <h2>Hello, {name}</h2>
-      <button onClick={()=> setName("Rahul")}>
-        ChangeName
-      </button>
+      ))}
+
     </div>
   )
 }
