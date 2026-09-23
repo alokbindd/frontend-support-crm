@@ -12,13 +12,15 @@ function App() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
 
+  const fetchTickets = async () => {
+    const response = await fetch("http://127.0.0.1:8000/api/tickets");
+    const data = await response.json();
+    SetTickets(data);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/tickets")
-      .then((response) => response.json())
-      .then((data) => {
-        SetTickets(data);
-        setLoading(false);
-      });
+    fetchTickets()
   }, []);
 
   const filteredTicket = tickets.filter((ticket) => {
@@ -35,7 +37,7 @@ function App() {
     <div>
       <h1>Support CRM</h1>
 
-      <CreateTicketForm />
+      <CreateTicketForm onTicketCreated={fetchTickets} />
 
       <input
         type="text"
