@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function CreateTicketForm() {
+function CreateTicketForm({ onTicketCreated }) {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [subject, setSubject] = useState("");
@@ -38,6 +38,8 @@ function CreateTicketForm() {
     setCustomerEmail("");
     setSubject("");
     setDescription("");
+
+    onTicketCreated()
   };
 
   return (
