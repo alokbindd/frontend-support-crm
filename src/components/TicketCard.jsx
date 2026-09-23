@@ -1,6 +1,6 @@
-function TicketCard({ ticket }) {
+function TicketCard({ ticket, onClick }) {
     return (
-        <div>
+        <div onClick={onClick}>
             <h2>{ticket.subject}</h2>
 
             <p>Ticket ID: {ticket.ticket_id}</p>
