@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import TicketCard from "./components/TicketCard";
 import CreateTicketForm from "./components/CreateTicketForm";
 import TicketDetails from "./components/TicketDetails";
+import { getTickets } from "./services/ticketService";
 
 function App() {
   const [tickets, SetTickets] = useState([]);
@@ -13,10 +14,16 @@ function App() {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
 
   const fetchTickets = async () => {
-    const response = await fetch(`${API_BASE_URL}/api/tickets`);
-    const data = await response.json();
-    SetTickets(data);
-    setLoading(false);
+    try{
+      const data = await getTickets()
+      SetTickets(data);
+    }
+    catch (error){
+      console.error(error)
+    }
+    finally{
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
