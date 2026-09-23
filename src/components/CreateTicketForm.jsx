@@ -1,4 +1,5 @@
 import { useState } from "react";
+import API_BASE_URL from "../config/api";
 
 function CreateTicketForm({ onTicketCreated }) {
   const [customerName, setCustomerName] = useState("");
@@ -16,7 +17,7 @@ function CreateTicketForm({ onTicketCreated }) {
       description: description,
     };
 
-    const response = await fetch("http://127.0.0.1:8000/api/tickets", {
+    const response = await fetch(`${API_BASE_URL}/api/tickets`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
