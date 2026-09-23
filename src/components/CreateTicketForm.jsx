@@ -1,5 +1,6 @@
 import { useState } from "react";
 import API_BASE_URL from "../config/api";
+import { createTicket } from "../services/ticketService";
 
 function CreateTicketForm({ onTicketCreated }) {
   const [customerName, setCustomerName] = useState("");
@@ -17,30 +18,22 @@ function CreateTicketForm({ onTicketCreated }) {
       description: description,
     };
 
-    const response = await fetch(`${API_BASE_URL}/api/tickets`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(ticketData),
-    });
+    try {
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error(errorData);
-      return;
+      const data = await createTicket(ticketData);
+      
+      console.log(data);
+      
+      setCustomerName("");
+      setCustomerEmail("");
+      setSubject("");
+      setDescription("");
+      
+      onTicketCreated()
     }
-
-    const data = await response.json();
-
-    console.log(data);
-
-    setCustomerName("");
-    setCustomerEmail("");
-    setSubject("");
-    setDescription("");
-
-    onTicketCreated()
+    catch (error) {
+      console.error(error)
+    }
   };
 
   return (
