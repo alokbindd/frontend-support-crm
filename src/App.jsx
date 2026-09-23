@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
-import heroImg from "./assets/hero.png";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "./assets/vite.svg";
 import "./App.css";
+import API_BASE_URL from "./config/api";
+import { useEffect, useState } from "react";
 import TicketCard from "./components/TicketCard";
 import CreateTicketForm from "./components/CreateTicketForm";
 
@@ -13,14 +11,14 @@ function App() {
   const [status, setStatus] = useState("All");
 
   const fetchTickets = async () => {
-    const response = await fetch("http://127.0.0.1:8000/api/tickets");
+    const response = await fetch(`${API_BASE_URL}/api/tickets`);
     const data = await response.json();
     SetTickets(data);
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchTickets()
+    fetchTickets();
   }, []);
 
   const filteredTicket = tickets.filter((ticket) => {
