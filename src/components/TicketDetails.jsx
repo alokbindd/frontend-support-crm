@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import API_BASE_URL from "../config/api";
+import { getTicket, updateTicket } from "../services/ticketService";
 
 function TicketDetails({ ticketId, onBack }) {
   const [ticket, setTicket] = useState(null);
@@ -9,13 +9,11 @@ function TicketDetails({ ticketId, onBack }) {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/tickets/${ticketId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setTicket(data);
-        setNewStatus(data.status);
-        setLoading(false);
-      });
+    getTicket(ticketId).then((data) => {
+      setTicket(data);
+      setNewStatus(data.status);
+      setLoading(false);
+    });
   }, [ticketId]);
 
   if (loading) {
@@ -36,30 +34,17 @@ function TicketDetails({ ticketId, onBack }) {
       notes: notes,
     };
 
-    const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updateData),
-    });
-
-    if (!response.ok) {
-      console.error("Failed to update ticket");
+    try {
+      await updateTicket(ticketId, updateData);
+      setNotes("");
+      
+      const updatedTicket = await getTicket(ticketId);
+      setTicket(updatedTicket);
+    } catch (error) {
+      console.error(error);
+    } finally {
       setUpdating(false);
-      return;
     }
-
-    setNotes("");
-    setUpdating(false);
-
-    const updatedresponse = await fetch(
-      `${API_BASE_URL}/api/tickets/${ticketId}`,
-    );
-
-    const updatedTicket = await updatedresponse.json();
-
-    setTicket(updatedTicket);
   };
 
   return (
@@ -80,7 +65,7 @@ function TicketDetails({ ticketId, onBack }) {
         <p>No notes yet</p>
       ) : (
         ticket.notes.map((note) => (
-          <div key={note.ticket_id}>
+          <div key={note.id}>
             <p>{note.note_text}</p>
           </div>
         ))
