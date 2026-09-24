@@ -7,9 +7,12 @@ function CreateTicketForm({ onTicketCreated }) {
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+  const [creating, setCreating] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setCreating(true);
+    setError("");
 
     const ticketData = {
       customer_name: customerName,
@@ -31,7 +34,9 @@ function CreateTicketForm({ onTicketCreated }) {
       onTicketCreated();
     } catch (error) {
       console.error(error);
-      setError("Failed to create ticket. pls try again.");
+      setError("Failed to create ticket. please try again.");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -40,7 +45,7 @@ function CreateTicketForm({ onTicketCreated }) {
       {error ? (
         <div>
           <p>{error}</p>
-          <button onClick={() => setError("")}>Fill again</button>
+          <button onClick={() => setError("")}>Try again</button>
         </div>
       ) : (
         <div>
@@ -73,7 +78,9 @@ function CreateTicketForm({ onTicketCreated }) {
               onChange={(event) => setDescription(event.target.value)}
             />
 
-            <button>Create Ticket</button>
+            <button type='submit' disabled={creating}>
+              {creating? "Creating" : "Create Ticket"}
+            </button>
           </form>{" "}
         </div>
       )}
