@@ -120,8 +120,17 @@ function App() {
                 <p className="error-message">{error}</p>
               ) : filteredTicket.length === 0 ? (
                 <div className="empty-state">
-                  <h3>No tickets found</h3>
-                  <p>Try changing your search or status filter.</p>
+                  {tickets.length === 0 ? (
+                    <>
+                      <h3>No tickets yet</h3>
+                      <p>Create your first support ticket to get started.</p>
+                    </>
+                  ) : (
+                    <>
+                      <h3>No tickets found</h3>
+                      <p>Try changing your search or status filter.</p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="ticket-list">
