@@ -42,6 +42,7 @@ function TicketDetails({ ticketId, onBack }) {
   }
 
   const handleUpdate = async () => {
+    setUpdateError("");
     setUpdating(true);
 
     const statusMap = {
