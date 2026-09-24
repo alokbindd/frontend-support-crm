@@ -11,17 +11,17 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
+  const [error, setError] = useState("");
   const [selectedTicketId, setSelectedTicketId] = useState(null);
 
   const fetchTickets = async () => {
-    try{
-      const data = await getTickets()
+    try {
+      const data = await getTickets();
       SetTickets(data);
-    }
-    catch (error){
-      console.error(error)
-    }
-    finally{
+    } catch (error) {
+      console.error(error);
+      setError("Failed to load tickets. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -72,6 +72,8 @@ function App() {
 
           {loading ? (
             <p>Loading tickets...</p>
+          ) : error ? (
+            <p>{error}</p>
           ) : (
             filteredTicket.map((ticket) => (
               <TicketCard
