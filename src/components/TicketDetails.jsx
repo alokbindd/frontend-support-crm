@@ -53,7 +53,7 @@ function TicketDetails({ ticketId, onBack }) {
 
     const updateData = {
       status: statusMap[newStatus],
-      notes: notes,
+      notes: notes.trim(),
     };
 
     try {
