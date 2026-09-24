@@ -41,31 +41,43 @@ function CreateTicketForm({ onTicketCreated }) {
   };
 
   return (
-    <div>
+    <div className="create-ticket-form">
       {error ? (
-        <div>
+        <div className="form-error">
           <p>{error}</p>
-          <button onClick={() => setError("")}>Try again</button>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setError("")}
+          >
+            Try Again
+          </button>
         </div>
       ) : (
-        <div>
+        <>
           <h2>Create Ticket</h2>
+
           <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Customer Name"
-              value={customerName}
-              onChange={(event) => setCustomerName(event.target.value)}
-            />
+            <div className="form-row">
+              <input
+                className="form-input"
+                type="text"
+                placeholder="Customer Name"
+                value={customerName}
+                onChange={(event) => setCustomerName(event.target.value)}
+              />
+
+              <input
+                className="form-input"
+                type="email"
+                placeholder="Customer Email"
+                value={customerEmail}
+                onChange={(event) => setCustomerEmail(event.target.value)}
+              />
+            </div>
 
             <input
-              type="email"
-              placeholder="Customer Email"
-              value={customerEmail}
-              onChange={(event) => setCustomerEmail(event.target.value)}
-            />
-
-            <input
+              className="form-input"
               type="text"
               placeholder="Subject"
               value={subject}
@@ -73,16 +85,21 @@ function CreateTicketForm({ onTicketCreated }) {
             />
 
             <textarea
+              className="form-input description-input"
               placeholder="Description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
 
-            <button type='submit' disabled={creating}>
-              {creating? "Creating" : "Create Ticket"}
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={creating}
+            >
+              {creating ? "Creating..." : "Create Ticket"}
             </button>
-          </form>{" "}
-        </div>
+          </form>
+        </>
       )}
     </div>
   );
