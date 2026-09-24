@@ -1,5 +1,4 @@
 import "./App.css";
-import API_BASE_URL from "./config/api";
 import { useEffect, useState } from "react";
 import TicketCard from "./components/TicketCard";
 import CreateTicketForm from "./components/CreateTicketForm";
@@ -40,8 +39,22 @@ function App() {
     return matchesSearch && matchesStatus;
   });
 
+  const totalTickets = tickets.length;
+
+  const openTickets = tickets.filter(
+    (ticket) => ticket.status === "Open",
+  ).length;
+
+  const inProgressTickets = tickets.filter(
+    (ticket) => ticket.status === "In Progress",
+  ).length;
+
+  const closedTickets = tickets.filter(
+    (ticket) => ticket.status === "Closed",
+  ).length;
+
   return (
-    <div>
+    <div className="app">
       {selectedTicketId ? (
         <TicketDetails
           ticketId={selectedTicketId}
@@ -49,40 +62,80 @@ function App() {
         />
       ) : (
         <>
-          <h1>Support CRM</h1>
+          <header className="app-header">
+            <div>
+              <h1>Support CRM</h1>
+              <p>Manage customer support tickets</p>
+            </div>
+          </header>
+          <main className="dashboard">
+            <section className="stats-grid">
+              <div className="stat-card">
+                <span className="stat-label">Total Tickets</span>
+                <strong>{totalTickets}</strong>
+              </div>
 
-          <CreateTicketForm onTicketCreated={fetchTickets} />
+              <div className="stat-card">
+                <span className="stat-label">Open</span>
+                <strong>{openTickets}</strong>
+              </div>
 
-          <input
-            type="text"
-            placeholder="Search Ticket..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
+              <div className="stat-card">
+                <span className="stat-label">In Progress</span>
+                <strong>{inProgressTickets}</strong>
+              </div>
 
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-          >
-            <option value="All">All</option>
-            <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Closed">Closed</option>
-          </select>
+              <div className="stat-card">
+                <span className="stat-label">Closed</span>
+                <strong>{closedTickets}</strong>
+              </div>
+            </section>
+            <section className="create-section">
+              <CreateTicketForm onTicketCreated={fetchTickets} />
+            </section>
 
-          {loading ? (
-            <p>Loading tickets...</p>
-          ) : error ? (
-            <p>{error}</p>
-          ) : (
-            filteredTicket.map((ticket) => (
-              <TicketCard
-                key={ticket.ticket_id}
-                ticket={ticket}
-                onClick={() => setSelectedTicketId(ticket.ticket_id)}
-              />
-            ))
-          )}
+            <section className="ticket-section">
+              <div className="ticket-toolbar">
+                <input
+                  type="text"
+                  placeholder="Search Ticket..."
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+
+                <select
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value)}
+                >
+                  <option value="All">All</option>
+                  <option value="Open">Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+
+              {loading ? (
+                <p className="loading-message">Loading tickets...</p>
+              ) : error ? (
+                <p className="error-message">{error}</p>
+              ) : filteredTicket.length === 0 ? (
+                <div className="empty-state">
+                  <h3>No tickets found</h3>
+                  <p>Try changing your search or status filter.</p>
+                </div>
+              ) : (
+                <div className="ticket-list">
+                  {filteredTicket.map((ticket) => (
+                    <TicketCard
+                      key={ticket.ticket_id}
+                      ticket={ticket}
+                      onClick={() => setSelectedTicketId(ticket.ticket_id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </main>
         </>
       )}
     </div>
