@@ -71,58 +71,107 @@ function TicketDetails({ ticketId, onBack }) {
   };
 
   return (
-    <div>
-      <button onClick={onBack}> &larr; Back to Tickets</button>
+    <div className="ticket-details-page">
+      <button className="back-button" onClick={onBack}>
+        &larr; Back to Tickets
+      </button>
 
-      <h2>{ticket.subject}</h2>
-      <p>Ticket ID: {ticket.ticket_id}</p>
-      <p>Customer Name: {ticket.customer_name}</p>
-      <p>Customer Email: {ticket.customer_email}</p>
-      <p>Status: {ticket.status}</p>
-
-      <h3>Description:</h3>
-      <p>{ticket.description}</p>
-
-      <h3>Notes:</h3>
-      {ticket.notes.length === 0 ? (
-        <p>No notes yet</p>
-      ) : (
-        ticket.notes.map((note) => (
-          <div key={note.id}>
-            <p>{note.note_text}</p>
+      <div className="ticket-details-card">
+        <div className="details-header">
+          <div>
+            <p className="details-ticket-id">{ticket.ticket_id}</p>
+            <h2>{ticket.subject}</h2>
           </div>
-        ))
-      )}
 
-      {!updateError ? (
-        <div>
-          <h3>Update Ticket</h3>
-          <select
-            value={newStatus}
-            onChange={(event) => setNewStatus(event.target.value)}
+          <span
+            className={`status-badge status-${ticket.status
+              .toLowerCase()
+              .replace(" ", "-")}`}
           >
-            <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Closed">Closed</option>
-          </select>
-
-          <textarea
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-          />
-
-          <button onClick={handleUpdate} disabled={updating}>
-            {updating ? "Updating..." : "Update Ticket"}
-          </button>
+            {ticket.status}
+          </span>
         </div>
-      ) : (
-        <div>
-          <button onClick={() => setUpdateError("")}>
-            &larr; Back to update
-          </button>
-          <p>{updateError}</p>
+
+        <div className="customer-info">
+          <div>
+            <span className="info-label">Customer</span>
+            <p>{ticket.customer_name}</p>
+          </div>
+
+          <div>
+            <span className="info-label">Email</span>
+            <p>{ticket.customer_email}</p>
+          </div>
         </div>
-      )}
+
+        <div className="details-section">
+          <h3>Description</h3>
+          <p>{ticket.description}</p>
+        </div>
+
+        <div className="details-section">
+          <h3>Notes</h3>
+
+          {ticket.notes.length === 0 ? (
+            <p className="no-notes">No notes yet</p>
+          ) : (
+            <div className="notes-list">
+              {ticket.notes.map((note) => (
+                <div className="note-card" key={note.id}>
+                  <p>{note.note_text}</p>
+                  <span>{new Date(note.created_at).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {!updateError ? (
+          <div className="update-section">
+            <h3>Update Ticket</h3>
+
+            <label>Status</label>
+
+            <select
+              className="form-input"
+              value={newStatus}
+              onChange={(event) => setNewStatus(event.target.value)}
+            >
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Closed">Closed</option>
+            </select>
+
+            <label>Note</label>
+
+            <textarea
+              className="form-input"
+              placeholder="Add a note..."
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+            />
+
+            <button
+              className="primary-button"
+              onClick={handleUpdate}
+              disabled={updating}
+            >
+              {updating ? "Updating..." : "Update Ticket"}
+            </button>
+          </div>
+        ) : (
+          <div className="form-error">
+            <p>{updateError}</p>
+
+            <button
+              className="secondary-button"
+              onClick={() => setUpdateError("")}
+            >
+              &larr; Back to update
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
