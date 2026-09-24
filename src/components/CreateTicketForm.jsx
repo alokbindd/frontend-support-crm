@@ -8,17 +8,45 @@ function CreateTicketForm({ onTicketCreated }) {
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [validationError, setValidationError] = useState("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setCreating(true);
     setError("");
 
+    if (!customerName.trim()) {
+      setValidationError("Customer name is required.");
+      return;
+    }
+
+    if (!customerEmail.trim()) {
+      setValidationError("Customer email is required.");
+      return;
+    }
+
+    if (!subject.trim()) {
+      setValidationError("Subject is required.");
+      return;
+    }
+
+    if (!description.trim()) {
+      setValidationError("Description is required.");
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(customerEmail.trim())) {
+      setValidationError("Please enter a valid email address.");
+      return;
+    }
+    setCreating(true);
+
     const ticketData = {
-      customer_name: customerName,
-      customer_email: customerEmail,
-      subject: subject,
-      description: description,
+      customer_name: customerName.trim(),
+      customer_email: customerEmail.trim(),
+      subject: subject.trim(),
+      description: description.trim(),
     };
 
     try {
@@ -58,13 +86,19 @@ function CreateTicketForm({ onTicketCreated }) {
           <h2>Create Ticket</h2>
 
           <form onSubmit={handleSubmit}>
+            {validationError && (
+              <div className="validation-error">{validationError}</div>
+            )}
             <div className="form-row">
               <input
                 className="form-input"
                 type="text"
                 placeholder="Customer Name"
                 value={customerName}
-                onChange={(event) => setCustomerName(event.target.value)}
+                onChange={(event) => {
+                  setCustomerName(event.target.value);
+                  setValidationError("");
+                }}
               />
 
               <input
@@ -72,7 +106,10 @@ function CreateTicketForm({ onTicketCreated }) {
                 type="email"
                 placeholder="Customer Email"
                 value={customerEmail}
-                onChange={(event) => setCustomerEmail(event.target.value)}
+                onChange={(event) => {
+                  setCustomerEmail(event.target.value);
+                  setValidationError("");
+                }}
               />
             </div>
 
@@ -81,14 +118,20 @@ function CreateTicketForm({ onTicketCreated }) {
               type="text"
               placeholder="Subject"
               value={subject}
-              onChange={(event) => setSubject(event.target.value)}
+              onChange={(event) => {
+                setSubject(event.target.value);
+                setValidationError("");
+              }}
             />
 
             <textarea
               className="form-input description-input"
               placeholder="Description"
               value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              onChange={(event) => {
+                setDescription(event.target.value);
+                setValidationError("");
+              }}
             />
 
             <button
