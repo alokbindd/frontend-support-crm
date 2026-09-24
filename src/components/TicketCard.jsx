@@ -1,13 +1,29 @@
 function TicketCard({ ticket, onClick }) {
-    return (
-        <div onClick={onClick}>
-            <h2>{ticket.subject}</h2>
+  return (
+    <div className="ticket-card" onClick={onClick}>
+      <div className="ticket-card-header">
+        <span className="ticket-id">{ticket.ticket_id}</span>
 
-            <p>Ticket ID: {ticket.ticket_id}</p>
-            <p>Customer Name: {ticket.customer_name}</p>
-            <p>Status: {ticket.status}</p>
-        </div>
-    )
+        <span
+          className={`status-badge status-${ticket.status
+            .toLowerCase()
+            .replace(" ", "-")}`}
+        >
+          {ticket.status}
+        </span>
+      </div>
+
+      <h3>{ticket.subject}</h3>
+
+      <p className="ticket-customer">
+        {ticket.customer_name} . {ticket.customer_email}
+      </p>
+
+      <p className="ticket-date">
+        {new Date(ticket.created_at).toLocaleString()}
+      </p>
+    </div>
+  );
 }
 
-export default TicketCard
+export default TicketCard;
