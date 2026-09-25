@@ -31,9 +31,11 @@ function TicketIcon() {
 }
 
 function App() {
-  const [tickets, SetTickets] = useState([]);
+  const [allTickets, setAllTickets] = useState([]);
+  const [displayedTickets, setDisplayedTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [error, setError] = useState("");
   const [selectedTicketId, setSelectedTicketId] = useState(null);
@@ -43,23 +45,91 @@ function App() {
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const createBusyRef = useRef(false);
   const filterRef = useRef(null);
+  const skipFilterFetchRef = useRef(true);
+  const displayedRequestIdRef = useRef(0);
   createBusyRef.current = createBusy;
 
-  const fetchTickets = async () => {
+  const fetchAllTickets = async () => {
+    const data = await getTickets();
+    setAllTickets(data);
+    return data;
+  };
+
+  const fetchDisplayedTickets = async (filterStatus, filterSearch) => {
+    const requestId = ++displayedRequestIdRef.current;
+
     try {
-      const data = await getTickets();
-      SetTickets(data);
+      setError("");
+      setLoading(true);
+      const data = await getTickets({
+        status: filterStatus,
+        search: filterSearch,
+      });
+      if (requestId !== displayedRequestIdRef.current) {
+        return;
+      }
+      setDisplayedTickets(data);
     } catch (error) {
+      if (requestId !== displayedRequestIdRef.current) {
+        return;
+      }
       console.error(error);
       setError("Failed to load tickets. Please try again.");
     } finally {
-      setLoading(false);
+      if (requestId === displayedRequestIdRef.current) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const refreshTickets = async () => {
+    try {
+      setError("");
+      const all = await fetchAllTickets();
+      if (status === "All" && !debouncedSearch.trim()) {
+        setDisplayedTickets(all);
+        return;
+      }
+      await fetchDisplayedTickets(status, debouncedSearch);
+    } catch (error) {
+      console.error(error);
+      setError("Failed to load tickets. Please try again.");
     }
   };
 
   useEffect(() => {
-    fetchTickets();
+    const loadTickets = async () => {
+      try {
+        const data = await getTickets();
+        setAllTickets(data);
+        setDisplayedTickets(data);
+      } catch (error) {
+        console.error(error);
+        setError("Failed to load tickets. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTickets();
   }, []);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timeoutId);
+  }, [search]);
+
+  useEffect(() => {
+    if (skipFilterFetchRef.current) {
+      skipFilterFetchRef.current = false;
+      return;
+    }
+
+    fetchDisplayedTickets(status, debouncedSearch);
+  }, [status, debouncedSearch]);
 
   const openCreateTicket = () => {
     if (!createDrawerMounted) {
@@ -78,7 +148,7 @@ function App() {
   };
 
   const handleTicketCreated = () => {
-    fetchTickets();
+    refreshTickets();
     setShowCreateTicket(false);
   };
 
@@ -133,27 +203,17 @@ function App() {
     };
   }, [statusMenuOpen]);
 
-  const filteredTicket = tickets.filter((ticket) => {
-    const matchesSearch = ticket.subject
-      .toLowerCase()
-      .includes(search.trim().toLowerCase());
+  const totalTickets = allTickets.length;
 
-    const matchesStatus = status === "All" || ticket.status === status;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const totalTickets = tickets.length;
-
-  const openTickets = tickets.filter(
+  const openTickets = allTickets.filter(
     (ticket) => ticket.status === "Open",
   ).length;
 
-  const inProgressTickets = tickets.filter(
+  const inProgressTickets = allTickets.filter(
     (ticket) => ticket.status === "In Progress",
   ).length;
 
-  const closedTickets = tickets.filter(
+  const closedTickets = allTickets.filter(
     (ticket) => ticket.status === "Closed",
   ).length;
 
@@ -392,9 +452,9 @@ function App() {
               <p className="error-message" role="alert">
                 {error}
               </p>
-            ) : filteredTicket.length === 0 ? (
+            ) : displayedTickets.length === 0 ? (
               <div className="empty-state">
-                {tickets.length === 0 ? (
+                {allTickets.length === 0 ? (
                   <>
                     <div className="empty-icon">
                       <TicketIcon />
@@ -414,7 +474,7 @@ function App() {
               </div>
             ) : (
               <div className="ticket-list">
-                {filteredTicket.map((ticket) => (
+                {displayedTickets.map((ticket) => (
                   <TicketCard
                     key={ticket.ticket_id}
                     ticket={ticket}
