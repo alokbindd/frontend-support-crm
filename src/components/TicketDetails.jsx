@@ -29,15 +29,29 @@ function TicketDetails({ ticketId, onBack }) {
   }, [ticketId]);
 
   if (loading) {
-    return <p>Loading ticket detail....</p>;
+    return (
+      <main className="ticket-details-page">
+        <button type="button" className="back-button" onClick={onBack}>
+          ← Back to Tickets
+        </button>
+        <div className="loading-state details-loading" role="status">
+          <div className="skeleton-card" aria-hidden="true" />
+          <p>Loading ticket...</p>
+        </div>
+      </main>
+    );
   }
 
   if (error) {
     return (
-      <div>
-        <button onClick={onBack}>&larr; Back to Tickets</button>
-        <p>{error}</p>
-      </div>
+      <main className="ticket-details-page">
+        <button type="button" className="back-button" onClick={onBack}>
+          ← Back to Tickets
+        </button>
+        <p className="error-message" role="alert">
+          {error}
+        </p>
+      </main>
     );
   }
 
@@ -70,10 +84,19 @@ function TicketDetails({ ticketId, onBack }) {
     }
   };
 
+  const formatDate = (value) =>
+    new Date(value).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
   return (
-    <div className="ticket-details-page">
-      <button className="back-button" onClick={onBack}>
-        &larr; Back to Tickets
+    <main className="ticket-details-page">
+      <button type="button" className="back-button" onClick={onBack}>
+        ← Back to Tickets
       </button>
 
       <div className="ticket-details-card">
@@ -119,7 +142,7 @@ function TicketDetails({ ticketId, onBack }) {
               {ticket.notes.map((note) => (
                 <div className="note-card" key={note.id}>
                   <p>{note.note_text}</p>
-                  <span>{new Date(note.created_at).toLocaleString()}</span>
+                  <span>{formatDate(note.created_at)}</span>
                 </div>
               ))}
             </div>
@@ -130,9 +153,10 @@ function TicketDetails({ ticketId, onBack }) {
           <div className="update-section">
             <h3>Update Ticket</h3>
 
-            <label>Status</label>
+            <label htmlFor="update-status">Status</label>
 
             <select
+              id="update-status"
               className="form-input"
               value={newStatus}
               onChange={(event) => setNewStatus(event.target.value)}
@@ -142,9 +166,10 @@ function TicketDetails({ ticketId, onBack }) {
               <option value="Closed">Closed</option>
             </select>
 
-            <label>Note</label>
+            <label htmlFor="update-note">Note</label>
 
             <textarea
+              id="update-note"
               className="form-input"
               placeholder="Add a note..."
               value={notes}
@@ -152,6 +177,7 @@ function TicketDetails({ ticketId, onBack }) {
             />
 
             <button
+              type="button"
               className="primary-button"
               onClick={handleUpdate}
               disabled={updating}
@@ -160,19 +186,20 @@ function TicketDetails({ ticketId, onBack }) {
             </button>
           </div>
         ) : (
-          <div className="form-error">
+          <div className="form-error" role="alert">
             <p>{updateError}</p>
 
             <button
+              type="button"
               className="secondary-button"
               onClick={() => setUpdateError("")}
             >
-              &larr; Back to update
+              ← Back to update
             </button>
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 
