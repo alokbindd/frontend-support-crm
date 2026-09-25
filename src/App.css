@@ -130,6 +130,48 @@ svg {
   font-size: 13px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.new-ticket-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.new-ticket-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.new-ticket-button:hover {
+  background: var(--primary-hover);
+}
+
+.new-ticket-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+.new-ticket-label-short {
+  display: none;
+}
+
 .header-user {
   display: flex;
   align-items: center;
@@ -184,12 +226,37 @@ svg {
 }
 
 .stat-card {
+  display: block;
+  width: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 18px 18px 16px;
   box-shadow: var(--shadow);
   min-width: 0;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.15s ease, background 0.15s ease;
+}
+
+.stat-card:hover {
+  border-color: #c7d2fe;
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.stat-card:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.stat-card-active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2), var(--shadow);
 }
 
 .stat-card-top {
@@ -270,19 +337,147 @@ svg {
   background: #9ca3af;
 }
 
-/* Create ticket */
+/* Create ticket drawer */
 
-.create-section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: var(--shadow);
+.create-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  pointer-events: none;
 }
 
-.create-ticket-form h2,
-.create-section h2 {
+.create-drawer.is-open {
+  pointer-events: auto;
+}
+
+.create-drawer-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.create-drawer.is-open .create-drawer-overlay {
+  opacity: 1;
+}
+
+.create-drawer-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 100%);
+  max-height: min(90vh, 760px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+  transform: translateY(12px) scale(0.98);
+  opacity: 0;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  overflow: hidden;
+}
+
+.create-drawer.is-open .create-drawer-panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.create-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.create-drawer-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.create-drawer-header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.drawer-close-button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.drawer-close-button:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: var(--text);
+}
+
+.drawer-close-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.drawer-close-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+}
+
+.create-ticket-form.is-embedded,
+.create-ticket-form.is-embedded form {
+  height: 100%;
+}
+
+.create-ticket-form.is-embedded form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.create-ticket-form.is-embedded .form-row {
+  flex-direction: column;
+}
+
+.create-ticket-form.is-embedded .form-actions {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.create-ticket-form h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
@@ -433,16 +628,7 @@ svg {
 
 .search-field input {
   width: 100%;
-  padding: 11px 14px 11px 38px;
-}
-
-.filter-field {
-  min-width: 180px;
-}
-
-.ticket-toolbar input,
-.ticket-toolbar select {
-  padding: 11px 14px;
+  padding: 11px 14px 11px 42px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -451,14 +637,104 @@ svg {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ticket-toolbar input::placeholder {
+.search-field input::placeholder {
   color: var(--text-muted);
 }
 
-.ticket-toolbar input:focus,
-.ticket-toolbar select:focus {
+.search-field input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.filter-field {
+  position: relative;
+  flex: 0 0 168px;
+  width: 168px;
+}
+
+.status-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.status-select svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.status-select-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-select:hover {
+  border-color: #cbd5e1;
+}
+
+.status-select:focus-visible,
+.status-select[aria-expanded="true"] {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.status-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 8;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.status-menu li + li {
+  margin-top: 2px;
+}
+
+.status-option {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-body);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.status-option:hover,
+.status-option:focus-visible {
+  background: #f3f4f6;
+  outline: none;
+}
+
+.status-option.is-active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
 }
 
 /* Ticket list */
@@ -881,7 +1157,8 @@ svg {
   }
 
   .filter-field {
-    min-width: 0;
+    flex: 1 1 auto;
+    width: 100%;
   }
 
   .form-row {
@@ -897,13 +1174,24 @@ svg {
     flex-direction: column;
   }
 
-  .ticket-details-card,
-  .create-section {
+  .ticket-details-card {
     padding: 20px;
   }
 
-  .header-user span:not(.avatar) {
+  .header-user-name {
     display: none;
+  }
+
+  .new-ticket-label-full {
+    display: none;
+  }
+
+  .new-ticket-label-short {
+    display: inline;
+  }
+
+  .new-ticket-button {
+    padding: 0 10px;
   }
 }
 
@@ -929,7 +1217,25 @@ svg {
     font-size: 22px;
   }
 
-  .primary-button {
+  .update-section .primary-button {
     width: 100%;
+  }
+
+  .create-drawer {
+    padding: 12px;
+  }
+
+  .create-drawer-panel {
+    width: min(100%, 480px);
+    max-height: 100%;
+  }
+
+  .form-actions {
+    width: 100%;
+  }
+
+  .form-actions .primary-button,
+  .form-actions .secondary-button {
+    flex: 1;
   }
 }

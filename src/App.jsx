@@ -1,9 +1,16 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TicketCard from "./components/TicketCard";
 import CreateTicketForm from "./components/CreateTicketForm";
 import TicketDetails from "./components/TicketDetails";
 import { getTickets } from "./services/ticketService";
+
+const STATUS_OPTIONS = [
+  { value: "All", label: "All Statuses" },
+  { value: "Open", label: "Open" },
+  { value: "In Progress", label: "In Progress" },
+  { value: "Closed", label: "Closed" },
+];
 
 function TicketIcon() {
   return (
@@ -30,6 +37,13 @@ function App() {
   const [status, setStatus] = useState("All");
   const [error, setError] = useState("");
   const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [showCreateTicket, setShowCreateTicket] = useState(false);
+  const [createDrawerMounted, setCreateDrawerMounted] = useState(false);
+  const [createBusy, setCreateBusy] = useState(false);
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
+  const createBusyRef = useRef(false);
+  const filterRef = useRef(null);
+  createBusyRef.current = createBusy;
 
   const fetchTickets = async () => {
     try {
@@ -47,10 +61,82 @@ function App() {
     fetchTickets();
   }, []);
 
+  const openCreateTicket = () => {
+    if (!createDrawerMounted) {
+      setCreateDrawerMounted(true);
+      requestAnimationFrame(() => setShowCreateTicket(true));
+      return;
+    }
+    setShowCreateTicket(true);
+  };
+
+  const closeCreateTicket = () => {
+    if (createBusyRef.current) {
+      return;
+    }
+    setShowCreateTicket(false);
+  };
+
+  const handleTicketCreated = () => {
+    fetchTickets();
+    setShowCreateTicket(false);
+  };
+
+  useEffect(() => {
+    if (!showCreateTicket) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      document.getElementById("customer-name")?.focus();
+    });
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeCreateTicket();
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [showCreateTicket]);
+
+  useEffect(() => {
+    if (!statusMenuOpen) {
+      return;
+    }
+
+    const onPointerDown = (event) => {
+      if (!filterRef.current?.contains(event.target)) {
+        setStatusMenuOpen(false);
+      }
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setStatusMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [statusMenuOpen]);
+
   const filteredTicket = tickets.filter((ticket) => {
     const matchesSearch = ticket.subject
       .toLowerCase()
-      .includes(search.toLowerCase());
+      .includes(search.trim().toLowerCase());
 
     const matchesStatus = status === "All" || ticket.status === status;
 
@@ -84,11 +170,32 @@ function App() {
               <p className="header-subtitle">Manage customer support tickets</p>
             </div>
           </div>
-          <div className="header-user">
-            <span>Support Agent</span>
-            <span className="avatar" aria-hidden="true">
-              SA
-            </span>
+          <div className="header-actions">
+            <button
+              type="button"
+              className="new-ticket-button"
+              onClick={openCreateTicket}
+              aria-label="New Ticket"
+              aria-haspopup="dialog"
+              aria-expanded={showCreateTicket}
+            >
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path
+                  d="M8 3.25v9.5M3.25 8h9.5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="new-ticket-label-full">New Ticket</span>
+              <span className="new-ticket-label-short">New</span>
+            </button>
+            <div className="header-user">
+              <span className="header-user-name">Support Agent</span>
+              <span className="avatar" aria-hidden="true">
+                SA
+              </span>
+            </div>
           </div>
         </div>
       </header>
@@ -101,7 +208,16 @@ function App() {
       ) : (
         <main className="dashboard">
           <section className="stats-grid" aria-label="Ticket statistics">
-            <div className="stat-card">
+            <button
+              type="button"
+              className={`stat-card${status === "All" ? " stat-card-active" : ""}`}
+              onClick={() => {
+                setStatus("All");
+                setStatusMenuOpen(false);
+              }}
+              aria-pressed={status === "All"}
+              aria-label="Show all tickets"
+            >
               <div className="stat-card-top">
                 <span className="stat-label">Total Tickets</span>
                 <span className="stat-icon stat-icon-total">
@@ -109,9 +225,18 @@ function App() {
                 </span>
               </div>
               <strong>{totalTickets}</strong>
-            </div>
+            </button>
 
-            <div className="stat-card">
+            <button
+              type="button"
+              className={`stat-card${status === "Open" ? " stat-card-active" : ""}`}
+              onClick={() => {
+                setStatus("Open");
+                setStatusMenuOpen(false);
+              }}
+              aria-pressed={status === "Open"}
+              aria-label="Show open tickets"
+            >
               <div className="stat-card-top">
                 <span className="stat-label">
                   <span className="stat-dot stat-dot-open" aria-hidden="true" />
@@ -122,9 +247,18 @@ function App() {
                 </span>
               </div>
               <strong>{openTickets}</strong>
-            </div>
+            </button>
 
-            <div className="stat-card">
+            <button
+              type="button"
+              className={`stat-card${status === "In Progress" ? " stat-card-active" : ""}`}
+              onClick={() => {
+                setStatus("In Progress");
+                setStatusMenuOpen(false);
+              }}
+              aria-pressed={status === "In Progress"}
+              aria-label="Show in-progress tickets"
+            >
               <div className="stat-card-top">
                 <span className="stat-label">
                   <span
@@ -138,9 +272,18 @@ function App() {
                 </span>
               </div>
               <strong>{inProgressTickets}</strong>
-            </div>
+            </button>
 
-            <div className="stat-card">
+            <button
+              type="button"
+              className={`stat-card${status === "Closed" ? " stat-card-active" : ""}`}
+              onClick={() => {
+                setStatus("Closed");
+                setStatusMenuOpen(false);
+              }}
+              aria-pressed={status === "Closed"}
+              aria-label="Show closed tickets"
+            >
               <div className="stat-card-top">
                 <span className="stat-label">
                   <span
@@ -154,11 +297,7 @@ function App() {
                 </span>
               </div>
               <strong>{closedTickets}</strong>
-            </div>
-          </section>
-
-          <section className="create-section">
-            <CreateTicketForm onTicketCreated={fetchTickets} />
+            </button>
           </section>
 
           <section className="ticket-section">
@@ -191,20 +330,52 @@ function App() {
                 />
               </div>
 
-              <div className="filter-field">
-                <label htmlFor="status-filter" className="sr-only">
-                  Filter by status
-                </label>
-                <select
+              <div className="filter-field" ref={filterRef}>
+                <button
+                  type="button"
                   id="status-filter"
-                  value={status}
-                  onChange={(event) => setStatus(event.target.value)}
+                  className="status-select"
+                  aria-haspopup="listbox"
+                  aria-expanded={statusMenuOpen}
+                  aria-label="Filter by status"
+                  onClick={() => setStatusMenuOpen((open) => !open)}
                 >
-                  <option value="All">All Statuses</option>
-                  <option value="Open">Open</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Closed">Closed</option>
-                </select>
+                  <span className="status-select-label">
+                    {STATUS_OPTIONS.find((option) => option.value === status)
+                      ?.label || "All Statuses"}
+                  </span>
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path
+                      d="M4 6l4 4 4-4"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                {statusMenuOpen && (
+                  <ul className="status-menu" role="listbox" aria-label="Statuses">
+                    {STATUS_OPTIONS.map((option) => (
+                      <li key={option.value} role="none">
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={status === option.value}
+                          className={`status-option${
+                            status === option.value ? " is-active" : ""
+                          }`}
+                          onClick={() => {
+                            setStatus(option.value);
+                            setStatusMenuOpen(false);
+                          }}
+                        >
+                          {option.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
 
@@ -254,6 +425,49 @@ function App() {
             )}
           </section>
         </main>
+      )}
+
+      {createDrawerMounted && (
+        <div
+          className={`create-drawer${showCreateTicket ? " is-open" : ""}`}
+          aria-hidden={!showCreateTicket}
+        >
+          <div
+            className="create-drawer-overlay"
+            onClick={closeCreateTicket}
+          />
+          <aside
+            className="create-drawer-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-drawer-title"
+            inert={showCreateTicket ? undefined : true}
+          >
+            <div className="create-drawer-header">
+              <div>
+                <h2 id="create-drawer-title">Create New Ticket</h2>
+                <p>Create a new customer support request</p>
+              </div>
+              <button
+                type="button"
+                className="drawer-close-button"
+                onClick={closeCreateTicket}
+                disabled={createBusy}
+                aria-label="Close create ticket"
+              >
+                ×
+              </button>
+            </div>
+            <div className="create-drawer-body">
+              <CreateTicketForm
+                embedded
+                onCancel={closeCreateTicket}
+                onBusyChange={setCreateBusy}
+                onTicketCreated={handleTicketCreated}
+              />
+            </div>
+          </aside>
+        </div>
       )}
     </div>
   );

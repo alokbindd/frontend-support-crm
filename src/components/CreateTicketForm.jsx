@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createTicket } from "../services/ticketService";
 
-function CreateTicketForm({ onTicketCreated }) {
+function CreateTicketForm({
+  onTicketCreated,
+  onCancel,
+  onBusyChange,
+  embedded = false,
+}) {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [subject, setSubject] = useState("");
@@ -9,6 +14,10 @@ function CreateTicketForm({ onTicketCreated }) {
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
   const [validationError, setValidationError] = useState("");
+
+  useEffect(() => {
+    onBusyChange?.(creating);
+  }, [creating, onBusyChange]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -69,24 +78,39 @@ function CreateTicketForm({ onTicketCreated }) {
   };
 
   return (
-    <div className="create-ticket-form">
+    <div className={`create-ticket-form${embedded ? " is-embedded" : ""}`}>
       {error ? (
         <div className="form-error" role="alert">
           <p>{error}</p>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => setError("")}
-          >
-            Try Again
-          </button>
+          <div className="form-actions">
+            {onCancel && (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={onCancel}
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setError("")}
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       ) : (
         <>
-          <h2>Create Ticket</h2>
-          <p className="section-subtitle">
-            Create a new customer support request
-          </p>
+          {!embedded && (
+            <>
+              <h2>Create Ticket</h2>
+              <p className="section-subtitle">
+                Create a new customer support request
+              </p>
+            </>
+          )}
 
           <form onSubmit={handleSubmit}>
             {validationError && (
@@ -155,13 +179,25 @@ function CreateTicketForm({ onTicketCreated }) {
               />
             </div>
 
-            <button
-              className="primary-button"
-              type="submit"
-              disabled={creating}
-            >
-              {creating ? "Creating..." : "Create Ticket"}
-            </button>
+            <div className="form-actions">
+              {onCancel && (
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={onCancel}
+                  disabled={creating}
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={creating}
+              >
+                {creating ? "Creating..." : "Create Ticket"}
+              </button>
+            </div>
           </form>
         </>
       )}
