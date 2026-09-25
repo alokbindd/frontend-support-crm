@@ -1,5 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getTicket, updateTicket } from "../services/ticketService";
+
+const UPDATE_STATUS_OPTIONS = [
+  { value: "Open", label: "Open" },
+  { value: "In Progress", label: "In Progress" },
+  { value: "Closed", label: "Closed" },
+];
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M10 3.5 5.5 8 10 12.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function TicketDetails({ ticketId, onBack }) {
   const [ticket, setTicket] = useState(null);
@@ -9,6 +29,8 @@ function TicketDetails({ ticketId, onBack }) {
   const [newStatus, setNewStatus] = useState("");
   const [notes, setNotes] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
+  const statusFieldRef = useRef(null);
 
   useEffect(() => {
     setLoading(true);
@@ -28,11 +50,38 @@ function TicketDetails({ ticketId, onBack }) {
       });
   }, [ticketId]);
 
+  useEffect(() => {
+    if (!statusMenuOpen) {
+      return;
+    }
+
+    const onPointerDown = (event) => {
+      if (!statusFieldRef.current?.contains(event.target)) {
+        setStatusMenuOpen(false);
+      }
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setStatusMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [statusMenuOpen]);
+
   if (loading) {
     return (
       <main className="ticket-details-page">
         <button type="button" className="back-button" onClick={onBack}>
-          ← Back to Tickets
+          <BackIcon />
+          Back to Tickets
         </button>
         <div className="loading-state details-loading" role="status">
           <div className="skeleton-card" aria-hidden="true" />
@@ -46,7 +95,8 @@ function TicketDetails({ ticketId, onBack }) {
     return (
       <main className="ticket-details-page">
         <button type="button" className="back-button" onClick={onBack}>
-          ← Back to Tickets
+          <BackIcon />
+          Back to Tickets
         </button>
         <p className="error-message" role="alert">
           {error}
@@ -93,10 +143,15 @@ function TicketDetails({ ticketId, onBack }) {
       minute: "2-digit",
     });
 
+  const selectedStatusLabel =
+    UPDATE_STATUS_OPTIONS.find((option) => option.value === newStatus)
+      ?.label || newStatus;
+
   return (
     <main className="ticket-details-page">
       <button type="button" className="back-button" onClick={onBack}>
-        ← Back to Tickets
+        <BackIcon />
+        Back to Tickets
       </button>
 
       <div className="ticket-details-card">
@@ -155,16 +210,50 @@ function TicketDetails({ ticketId, onBack }) {
 
             <label htmlFor="update-status">Status</label>
 
-            <select
-              id="update-status"
-              className="form-input"
-              value={newStatus}
-              onChange={(event) => setNewStatus(event.target.value)}
-            >
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Closed">Closed</option>
-            </select>
+            <div className="filter-field update-status-field" ref={statusFieldRef}>
+              <button
+                type="button"
+                id="update-status"
+                className="status-select"
+                aria-haspopup="listbox"
+                aria-expanded={statusMenuOpen}
+                aria-label="Update ticket status"
+                onClick={() => setStatusMenuOpen((open) => !open)}
+              >
+                <span className="status-select-label">{selectedStatusLabel}</span>
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path
+                    d="M4 6l4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              {statusMenuOpen && (
+                <ul className="status-menu" role="listbox" aria-label="Statuses">
+                  {UPDATE_STATUS_OPTIONS.map((option) => (
+                    <li key={option.value} role="none">
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={newStatus === option.value}
+                        className={`status-option${
+                          newStatus === option.value ? " is-active" : ""
+                        }`}
+                        onClick={() => {
+                          setNewStatus(option.value);
+                          setStatusMenuOpen(false);
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
             <label htmlFor="update-note">Note</label>
 
@@ -194,7 +283,8 @@ function TicketDetails({ ticketId, onBack }) {
               className="secondary-button"
               onClick={() => setUpdateError("")}
             >
-              ← Back to update
+              <BackIcon />
+              Back to update
             </button>
           </div>
         )}
