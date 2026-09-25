@@ -1,7 +1,30 @@
 import API_BASE_URL from "../config/api";
 
-export async function getTickets() {
-    const response = await fetch(`${API_BASE_URL}/api/tickets`)
+const STATUS_QUERY_MAP = {
+    Open: "open",
+    "In Progress": "in_progress",
+    Closed: "closed",
+};
+
+export async function getTickets({ status, search } = {}) {
+    const params = new URLSearchParams();
+
+    const backendStatus = STATUS_QUERY_MAP[status];
+    if (backendStatus) {
+        params.set("status", backendStatus);
+    }
+
+    const trimmedSearch = typeof search === "string" ? search.trim() : "";
+    if (trimmedSearch) {
+        params.set("search", trimmedSearch);
+    }
+
+    const query = params.toString();
+    const url = query
+        ? `${API_BASE_URL}/api/tickets?${query}`
+        : `${API_BASE_URL}/api/tickets`;
+
+    const response = await fetch(url);
 
     if (!response.ok) {
         throw new Error("Failed to fetch tickets")
